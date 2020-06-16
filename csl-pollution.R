@@ -36,7 +36,7 @@ sim.data$DateTime = datetimes
 
 # blacklist arcs to DateTime, Region, Zone, Long, Lat, Alt
 # and from CVD60
-source.nodes <- c("DateTime", "Region", "Zone", "Type", "Latitude", "Altitude")
+source.nodes <- c("DateTime", "Region", "Zone", "Type", "Latitude", "Altitude", "Longitude")
 bl.source.from <- vector(length=length(source.nodes) * length(names(sim.data)))
 bl.source.to <- vector(length=length(bl.source.from))
 for (i in 1:length(source.nodes)) {
@@ -84,4 +84,3 @@ computed.net2 <- pc.stable(discrete.sim.data, test="mi-sh", blacklist=bl)
 graphviz.plot(computed.net2)
 computed.net3 <- pc.stable(clustered.data, test="mi-sh", blacklist=bl)
 graphviz.plot(computed.net3)
-
