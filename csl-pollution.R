@@ -5,7 +5,7 @@ library(rbin)
 library(Ckmeans.1d.dp)
 
 load("./nets/mehra-complete.rda")
-sample.size <- 10000 #50000
+sample.size <- 10000
 
 # gather observations from original net
 sim.data <- rbn(bn, sample.size)
@@ -31,16 +31,30 @@ for(i in 1:sample.size) {
 drop <- c("Year","Month", "Day", "Hour")
 sim.data <- sim.data[,!(names(sim.data) %in% drop)]
 
-# blacklist arcs to DateTime
-bl.from <- names(sim.data)
-bl.to <- vector(length=length(bl.from))
-for(i in 1:length(bl.from)) {
-  bl.to[i] <- "DateTime"
-}
-bl <- data.frame("from"=bl.from, "to"=bl.to)
-
 # add new time
 sim.data$DateTime = datetimes
+
+# blacklist arcs to DateTime, Region, Zone, Long, Lat, Alt
+# and from CVD60
+source.nodes <- c("DateTime", "Region", "Zone", "Type", "Latitude", "Altitude")
+bl.source.from <- vector(length=length(source.nodes) * length(names(sim.data)))
+bl.source.to <- vector(length=length(bl.source.from))
+for (i in 1:length(source.nodes)) {
+  for(j in 1:length(names(sim.data))) {
+    bl.source.to[(i - 1) * length(names(sim.data)) + j] <- source.nodes[i]
+    bl.source.from[(i - 1) * length(names(sim.data)) + j] <- names(sim.data)[j]
+  }
+}
+
+bl.sink.from <- vector(length=length(names(sim.data)))
+bl.sink.to <- vector(length=length(bl.sink.from))
+
+for(i in 1:length(names(sim.data))) {
+  bl.sink.from[i] <- "CVD60"
+  bl.sink.to[i] <- names(sim.data)[i]
+}
+
+bl <- data.frame("from"=c(bl.source.from, bl.sink.from), "to"=c(bl.source.to, bl.sink.to))
 
 # pc stable with mixed test
 computed.net <- pc.stable(sim.data, test="mi-cg", blacklist=bl)
@@ -60,7 +74,7 @@ clustered.data <- sim.data[,(names(sim.data) %in% discrete.variables)]
 
 for(column in names(contin.data)) {
   values <- contin.data[[column]]
-  k.means <- Ckmedian.1d.dp(values, k=c(5,200))
+  k.means <- Ckmedian.1d.dp(values, k=c(10,100))
   clustered.values <- factor(k.means$cluster)
   clustered.data[[column]] <- clustered.values
 }
@@ -70,3 +84,4 @@ computed.net2 <- pc.stable(discrete.sim.data, test="mi-sh", blacklist=bl)
 graphviz.plot(computed.net2)
 computed.net3 <- pc.stable(clustered.data, test="mi-sh", blacklist=bl)
 graphviz.plot(computed.net3)
+
