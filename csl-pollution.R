@@ -5,7 +5,7 @@ library(rbin)
 library(Ckmeans.1d.dp)
 
 load("./nets/mehra-complete.rda")
-sample.size <- 10000
+sample.size <- 100000
 
 # gather observations from original net
 sim.data <- rbn(bn, sample.size)
@@ -74,13 +74,24 @@ clustered.data <- sim.data[,(names(sim.data) %in% discrete.variables)]
 
 for(column in names(contin.data)) {
   values <- contin.data[[column]]
-  k.means <- Ckmedian.1d.dp(values, k=c(10,100))
-  clustered.values <- factor(k.means$cluster)
+  k.medians <- Ckmedian.1d.dp(values, k=c(3,5))
+  clustered.values <- factor(k.medians$cluster)
   clustered.data[[column]] <- clustered.values
 }
+
 
 # pc stable with discrete values
 computed.net2 <- pc.stable(discrete.sim.data, test="mi-sh", blacklist=bl)
 graphviz.plot(computed.net2)
 computed.net3 <- pc.stable(clustered.data, test="mi-sh", blacklist=bl)
 graphviz.plot(computed.net3)
+
+
+timestamped.filename <- function(name) {
+  return(paste(format(Sys.time(), "%Y%m%d-%H%M%S"), name, sep='-'))
+}
+
+save(bn,file=timestamped.filename("original.rda"))
+save(computed.net, file=timestamped.filename("mixed.rda"))
+save(computed.net2,file=timestamped.filename("built-in.discrete.rda"))
+save(computed.net2,file=timestamped.filename("k-median-discrete.rda"))
