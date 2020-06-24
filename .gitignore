@@ -42,3 +42,6 @@ vignettes/*.pdf
 *.pdf
 
 *.rda
+*.rds
+
+.DS_STORE
