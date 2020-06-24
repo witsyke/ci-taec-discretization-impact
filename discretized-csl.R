@@ -1,7 +1,8 @@
 source("./helper.R")
 
 load("./blacklist.rds")
-sample <- generate.sample(1000000)
+sample.size <- 25000000
+sample <- generate.sample(sample.size)
 
 
 # pc stable with discrete values (built-in)
@@ -12,7 +13,7 @@ discrete.sample.builtin <- discretize(sample)
 computed.net1 <- pc.stable(discrete.sample.builtin, test="mi-sh", blacklist = base::as.data.frame(bl))
 # graphviz.plot(computed.net2)
 
-save(computed.net1,file=timestamped.filename(prefix = "./nets/", name = "built-in.discrete.rds"))
+save(computed.net1,file=timestamped.filename(prefix = "./nets/", name = paste(sample.size, "built-in.discrete.rds", sep='-')))
 
 # discretize data with k-means
 # already discrete variables: Region, Zone, Type, Season
@@ -23,7 +24,7 @@ clustered.data <- sample %>%
 
 
 computed.net2 <- pc.stable(clustered.data, test="mi-sh", blacklist = base::as.data.frame(bl))
-# graphviz.plot(computed.net3)
+# graphviz.plot(computed.net2)
 
 
-save(computed.net2,file=timestamped.filename(prefix = "./nets/", name = "k-median-discrete.rds"))
+save(computed.net2,file=timestamped.filename(prefix = "./nets/", name = paste(sample.size, "k-median-discrete.rds", sep='-')))
