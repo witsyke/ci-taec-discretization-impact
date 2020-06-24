@@ -1,19 +1,16 @@
-library(bnlearn)
-library(chron)
-library(tidyverse)
 source("./helper.R")
 
 load("./nets/mehra-complete.rda")
 
 # define sample size
-sample.size <- 51000000
+sample.size <- 25000000
 
 # gather observations from original net
 sim.data <- rbn(bn, sample.size)
 
 # convert timestamps to continuous
 data <- sim.data %>%
-  mutate(DateTime = chron(dates = paste(Year, Month, Day, sep="-"), times = paste(Hour, "0", "0", sep=":"), format = c('y-m-d','h:m:s'))) %>%
+  mutate(DateTime = as.numeric(chron(dates = paste(Year, Month, Day, sep="-"), times = paste(Hour, "0", "0", sep=":"), format = c('y-m-d','h:m:s')))) %>%
   filter(!is.na(DateTime)) %>%
   select(-Year, -Month, -Day, -Hour)
 
@@ -35,4 +32,4 @@ bl.sink <- c("CVD60") %>%
 bl <- dplyr::union(bl.source, bl.sink)
 
 # save complete blacklist
-save(bl,file=timestamped.filename("blacklist.rds"))
+save(bl,file = "blacklist.rds")

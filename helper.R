@@ -1,3 +1,8 @@
+library(bnlearn)
+library(Rgraphviz)
+library(chron)
+library(rbin)
+library(Ckmeans.1d.dp)
 library(tidyverse)
 
 timestamped.filename <- function(name) {
