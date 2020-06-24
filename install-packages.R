@@ -1,3 +1,11 @@
 install.packages("bnlearn")
 install.packages("tidyverse")
 install.packages("chron")
+install.packages("rbin")
+install.packages("Ckmeans.1d.dp")
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install()
+BiocManager::install(c("graph", "Rgraphviz", "RBGL"))
+install.packages("gRain")

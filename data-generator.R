@@ -18,7 +18,7 @@ clean.sim.data <- sim.data %>%
   select(-Year, -Month, -Day, -Hour)
 
 # save base data set for further use
-save(clean.sim.data,file=timestamped.filename("base-data.rds"))
+save(clean.sim.data,file="base-data.rds", compress = T)
 
 # blacklist arcs to DateTime, Region, Zone, Long, Lat, Alt
 # and from CVD60
@@ -35,4 +35,4 @@ bl.sink <- c("CVD60") %>%
 bl <- dplyr::union(bl.source, bl.sink)
 
 # save complete blacklist
-save(clean.sim.data,file=timestamped.filename("blacklist.rds"))
+save(bl,file=timestamped.filename("blacklist.rds"))
