@@ -15,3 +15,10 @@ data-generator
 ### Causal Inference
 __TBD__
 (ci-do.rmd)
+
+
+
+## Helpful commands
+
+### Interactive graph (igraph)
+`tkplot(graph, vertex.size=35, vertex.label.family="sans", vertex.color="white")`

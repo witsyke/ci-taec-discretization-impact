@@ -18,12 +18,15 @@ generate.sample <- function(size, seed = 0, dev = TRUE){
   if(dev){
     load("./base-data.rds")
   } else {
-    print("Currently only development option possible!")
-    #link = url("https://drive.google.com/file/d/1VHmAELtWWn9PMvMFMKts_wPmxN_qt4Cd/view?usp=sharing")#
-    #load(link)
+    print("This option is not recommend, as it will take ages to donwload the data!")
+    link = url("https://onedrive.live.com/download?cid=D09637ADEC795D08&resid=D09637ADEC795D08%21214&authkey=AHHe9Alke-E72J4")
+    source(link)
   }
   
-  sample_n(data, size = size, replace = F)
+  sample <- sample_n(data, size = size, replace = F)
+  rm(data)
   
-}
+  sample
+  
+  }
 

@@ -1,0 +1,92 @@
+---
+title: "Investigation of Causal Effects"
+author: "Daniel Lindner, Simon Witzke"
+date: "6/30/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(xtable)
+knitr::opts_chunk$set(tidy.opts=list(width.cutoff=62), tidy=TRUE, message = FALSE, warning = FALSE)
+source("./helper.R")
+load("./nets/mehra-complete.rda")
+```
+
+## Translation of learned bayesian network to igraph
+
+```{r warning = FALSE}
+sample.size <- 5000000
+sample <- generate.sample(sample.size)
+
+clustered.data <- sample %>%
+  base::sapply(function(x) if(!is.factor(x)){factor(Ckmedian.1d.dp(x, k=c(3,5))$cluster)} else x) %>%
+  base::as.data.frame()
+
+# TODO replace bn with our learned and saved model
+adj.matrix.from.bngraph <- amat(bn)
+igraph.from.bnmatrix<- graph_from_adjacency_matrix(adj.matrix.from.bngraph)
+# TODO mark undirected edges as such
+
+```
+
+## Plot network
+
+```{r pressure, echo=FALSE}
+graphviz.plot(bn)
+```
+
+
+## Find causal effect
+```{r }
+effect.igraph.from.bnmatrix <- causal.effect(y = "so2", x = "co", z = NULL, G = igraph.from.bnmatrix, expr = T)
+```
+
+$`
+```{r echo=FALSE, results="asis"}
+cat(effect.igraph.from.bnmatrix)
+```
+`$
+
+## Estimate causal effect strength
+
+```{r results='asis'}
+causal.effect.probabilites.so2.co <- function(data){
+
+data %>%
+  select(so2, co, Type, Zone, DateTime) %>%
+  add_count(Zone) %>%
+  mutate(prob_zone = n/nrow(data)) %>%
+  select(-n) %>%
+  add_count(Type) %>%
+  mutate(prob_type = n/nrow(data)) %>%
+  select(-n) %>%
+  add_count(DateTime) %>%
+  mutate(prob_datetime = n/nrow(data)) %>%
+  select(-n) %>%
+  group_by(Zone, Type, DateTime, co) %>%
+  add_count(so2) %>%
+  mutate(so2_cond_prob = n/nrow(data)) %>%
+  select(-n) %>%
+  mutate(total_prob = prob_zone * prob_type * prob_datetime * so2_cond_prob) %>%
+  distinct() %>%
+  group_by(so2, co) %>%
+  summarise("P(so2|Type, Zone, DateTime, co)P(Type)P(Zone)P(DateTime)" = sum(total_prob)) %>%
+    inner_join(data %>%
+  group_by(co) %>%
+  count(co) %>%
+  mutate("P(co)" = n/nrow(data)) %>%
+  select(-n))
+}
+
+
+causal.effect.size.so2.co <- function(data) {
+sum(causal.effect.probabilites.so2.co(data) %>%
+  base::apply(MARGIN = 1, function(x) as.numeric(x[3]) * as.numeric(x[4]) * log(as.numeric(x[3])/sum(causal.effect.probabilites.so2.co(data) %>%
+                                                                                                      base::apply(MARGIN = 1, function(x) 
+                                                                                                            as.numeric(x[3]) * as.numeric(x[4]))))))
+  }
+
+xtable(causal.effect.probabilites.so2.co(clustered.data))
+causal.effect.size.so2.co(clustered.data)
+```
+

@@ -1,7 +1,7 @@
 source("./helper.R")
 
 load("./blacklist.rds")
-sample.size <- 25000000
+sample.size <- 100000
 sample <- generate.sample(sample.size)
 
 

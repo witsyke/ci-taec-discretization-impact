@@ -3,7 +3,7 @@ source("./helper.R")
 load("./nets/mehra-complete.rda")
 
 # define sample size
-sample.size <- 50000000
+sample.size <- 1
 
 # gather observations from original net
 sim.data <- rbn(bn, sample.size)
@@ -15,18 +15,18 @@ data <- sim.data %>%
   select(-Year, -Month, -Day, -Hour)
 
 # save base data set for further use
-save(data,file="base-data.rds")
+save(data,file="base-data.RDS")
 
 # blacklist arcs to DateTime, Region, Zone, Long, Lat, Alt
 # and from CVD60
 source.nodes <- c("DateTime", "Region", "Zone", "Type", "Latitude", "Altitude", "Longitude")
 
 bl.source <- names(data) %>%
-  crossing(source.nodes) %>%
+  tidyr::crossing(source.nodes) %>%
   rename("from" = ".", "to" = "source.nodes")
 
 bl.sink <- c("CVD60") %>%
-  crossing(names(data)) %>%
+  tidyr::crossing(names(data)) %>%
   rename("from" = ".", "to" = "names(data)")
 
 bl <- dplyr::union(bl.source, bl.sink)
