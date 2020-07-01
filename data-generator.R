@@ -3,7 +3,7 @@ source("./helper.R")
 load("./nets/mehra-complete.rda")
 
 # define sample size
-sample.size <- 1
+sample.size <- 50000000
 
 # gather observations from original net
 sim.data <- rbn(bn, sample.size)

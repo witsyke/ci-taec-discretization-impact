@@ -10,17 +10,33 @@ library(xtable)
 knitr::opts_chunk$set(tidy.opts=list(width.cutoff=62), tidy=TRUE, message = FALSE, warning = FALSE)
 source("./helper.R")
 load("./nets/mehra-complete.rda")
+
+# define sample size
+sample.size <- 10000
+
+# gather observations from original net
+sim.data <- rbn(bn, sample.size)
+sim.data$Year <- as.numeric(as.character(sim.data$Year))
+
+
+test.data <- sim.data %>%
+  base::sapply(function(x) if(!is.factor(x)){factor(Ckmedian.1d.dp(x, k=c(2,2))$cluster)} else x) %>%
+  base::as.data.frame()
+
+
+
+test.data2 <- discretize(sim.data)
 ```
 
 ## Translation of learned bayesian network to igraph
 
 ```{r warning = FALSE}
-sample.size <- 5000000
-sample <- generate.sample(sample.size)
+#sample.size <- 5000000
+#sample <- generate.sample(sample.size)
 
-clustered.data <- sample %>%
-  base::sapply(function(x) if(!is.factor(x)){factor(Ckmedian.1d.dp(x, k=c(3,5))$cluster)} else x) %>%
-  base::as.data.frame()
+#clustered.data <- sample %>%
+# base::sapply(function(x) if(!is.factor(x)){factor(Ckmedian.1d.dp(x, k=c(3,5))$cluster)} else x) %>%
+#base::as.data.frame()
 
 # TODO replace bn with our learned and saved model
 adj.matrix.from.bngraph <- amat(bn)
@@ -50,43 +66,148 @@ cat(effect.igraph.from.bnmatrix)
 ## Estimate causal effect strength
 
 ```{r results='asis'}
-causal.effect.probabilites.so2.co <- function(data){
-
-data %>%
-  select(so2, co, Type, Zone, DateTime) %>%
-  add_count(Zone) %>%
-  mutate(prob_zone = n/nrow(data)) %>%
-  select(-n) %>%
-  add_count(Type) %>%
-  mutate(prob_type = n/nrow(data)) %>%
-  select(-n) %>%
-  add_count(DateTime) %>%
-  mutate(prob_datetime = n/nrow(data)) %>%
-  select(-n) %>%
-  group_by(Zone, Type, DateTime, co) %>%
-  add_count(so2) %>%
-  mutate(so2_cond_prob = n/nrow(data)) %>%
-  select(-n) %>%
-  mutate(total_prob = prob_zone * prob_type * prob_datetime * so2_cond_prob) %>%
-  distinct() %>%
-  group_by(so2, co) %>%
-  summarise("P(so2|Type, Zone, DateTime, co)P(Type)P(Zone)P(DateTime)" = sum(total_prob)) %>%
+causal.effect.probabilites.so2.co <- function(data) {
+  data %>%
+    select(so2, co, Type, Zone, Year) %>%
+    #select(so2, co, Type, Zone, DateTime) %>%
+    add_count(Zone) %>%
+    mutate(prob_zone = n / n()) %>%
+    select(-n) %>%
+    add_count(Type) %>%
+    mutate(prob_type = n / n()) %>%
+    select(-n) %>%
+    #add_count(DateTime) %>%
+    add_count(Year) %>%
+    mutate(prob_datetime = n / n()) %>%
+    select(-n) %>%
+    #group_by(Zone, Type, DateTime, co) %>%
+    group_by(Zone, Type, Year, co) %>%
+    add_count(so2) %>%
+    group_by(Zone, Type, Year, co) %>%
+    mutate(so2_cond_prob = n / n()) %>%
+    #select(-n) %>%
+    mutate(total_prob = prob_zone * prob_type * prob_datetime * so2_cond_prob) %>%
+    ungroup() %>%
+    distinct() %>%
+    group_by(so2, co) %>%
+    summarise("P(so2|Type, Zone, Year, co)P(Type)P(Zone)P(Year)" = sum(total_prob),
+              "Sum.so2" = sum(n)) %>%
+    #summarise("P(so2|Type, Zone, DateTime, co)P(Type)P(Zone)P(DateTime)" = sum(total_prob)) %>%
     inner_join(data %>%
-  group_by(co) %>%
-  count(co) %>%
-  mutate("P(co)" = n/nrow(data)) %>%
-  select(-n))
+                 group_by(co) %>%
+                 count(co) %>%
+                 mutate("P(co)" = n / nrow(data)) %>%
+                 select(-n))
+  
+}
+conditional.mutual.information.so2.co <- function(data) {
+  causal.effects <- causal.effect.probabilites.so2.co(data)
+  log.sum <- sum(causal.effects %>%
+                   base::apply(MARGIN = 1, function(x)
+                     as.numeric(x[3]) * as.numeric(x[4])))
+  
+  sum(causal.effects %>%
+        base::apply(MARGIN = 1, function(x)
+          as.numeric(x[3]) * as.numeric(x[4]) * log(as.numeric(x[3]) / log.sum)))
 }
 
 
-causal.effect.size.so2.co <- function(data) {
-sum(causal.effect.probabilites.so2.co(data) %>%
-  base::apply(MARGIN = 1, function(x) as.numeric(x[3]) * as.numeric(x[4]) * log(as.numeric(x[3])/sum(causal.effect.probabilites.so2.co(data) %>%
-                                                                                                      base::apply(MARGIN = 1, function(x) 
-                                                                                                            as.numeric(x[3]) * as.numeric(x[4]))))))
-  }
 
-xtable(causal.effect.probabilites.so2.co(clustered.data), digits = c(0, 0, 0, 10, 5))
-causal.effect.size.so2.co(clustered.data)
+#xtable(causal.effect.probabilites.so2.co(clustered.data), digits = c(0, 0, 0, 10, 5))
+#causal.effect.size.so2.co(clustered.data)
+
+
+xtable(causal.effect.probabilites.so2.co(test.data),
+       digits = c(0, 0, 0, 10, 5))
+# causal.effect.probabilites.so2.co(test.data)
+causal.effect.probabilites.so2.co(test.data) %>% arrange(co)
+
+
+conditional.mutual.information.so2.co(test.data)
+
 ```
 
+
+```{r}
+
+  f <- test.data %>%
+    select(so2, co, Type, Zone, Year) %>%
+    #select(so2, co, Type, Zone, DateTime) %>%
+    add_count(Zone) %>%
+    
+    mutate(prob_zone = n / n()) %>%
+    select(-n) %>%
+    add_count(Type) %>%
+    mutate(prob_type = n / n()) %>%
+    select(-n) %>%
+    #add_count(DateTime) %>%
+    add_count(Year) %>%
+    mutate(prob_datetime = n / n()) %>%
+    select(-n) %>%
+    #group_by(Zone, Type, DateTime, co) %>%
+    group_by(Zone, Type, Year, co) %>%
+    add_count(so2) %>%
+    group_by(Zone, Type, Year, co) %>%
+    mutate(count = n(),
+      so2_cond_prob = n / n()) %>%
+    ungroup() %>%
+    distinct() %>%
+    mutate(total_prob = prob_zone * prob_type * prob_datetime * so2_cond_prob) %>%
+    arrange(Type, Zone, Year) 
+  
+    
+    f3 <- test.data %>%
+    select(Type, Zone, Year) %>%
+    #select(so2, co, Type, Zone, DateTime) %>%
+    add_count(Zone) %>%
+    
+    mutate(prob_zone = n / n()) %>%
+    select(-n) %>%
+    add_count(Type) %>%
+    mutate(prob_type = n / n()) %>%
+    select(-n) %>%
+    #add_count(DateTime) %>%
+    add_count(Year) %>%
+    mutate(prob_datetime = n / n()) %>%
+    select(-n) %>%
+    tidyr::expand(Type, Zone, Year) %>%
+      left_join(f %>% select(Type, prob_type) %>% distinct()) %>%
+      left_join(f %>% select(Zone, prob_zone) %>% distinct()) %>%
+      left_join(f %>% select(Year, prob_datetime) %>% distinct())
+
+```
+
+```{r}
+
+loop.based.function <- function(data, co, so2){
+  result <- 0
+  for(type in unique(data$Type)){
+    for(zone in unique(data$Zone)){
+      for(year in unique(data$Year)){
+        # print(paste(type, zone, year, sep = "-"))
+        r <- sum(data$Type == type & data$Zone == zone & data$Year == year & data$co == co)
+        temp = sum(data$Type == type)/ nrow(data) * 
+          sum(data$Zone == zone)/ nrow(data) * 
+          sum(data$Year == year)/ nrow(data) * 
+          sum(data$Type == type & data$Zone == zone & data$Year == year & data$co == co & data$so2 == so2) / if_else(r == 0, 1L, r)
+        # print(temp)
+        result <- result + temp
+      }
+    }
+  }
+  result
+}
+
+loop.based.function (test.data, "2", "1")
+loop.based.function (test.data, "2", "2")
+
+loop.based.function (test.data, "1", "1")
+loop.based.function (test.data, "1", "2")
+```
+
+```{r}
+so2.2 <- test.data %>% filter(so2 == "2")	
+
+so2.2 %>% select(so2, Type, Zone, Year) %>% distinct()
+=
+```
