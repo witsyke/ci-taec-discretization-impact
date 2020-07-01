@@ -86,7 +86,7 @@ sum(causal.effect.probabilites.so2.co(data) %>%
                                                                                                             as.numeric(x[3]) * as.numeric(x[4]))))))
   }
 
-xtable(causal.effect.probabilites.so2.co(clustered.data))
+xtable(causal.effect.probabilites.so2.co(clustered.data), digits = c(0, 0, 0, 10, 5))
 causal.effect.size.so2.co(clustered.data)
 ```
 
