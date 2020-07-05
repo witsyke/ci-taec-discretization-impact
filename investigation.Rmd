@@ -25,7 +25,7 @@ test.data <- sim.data %>%
 
 
 
-test.data2 <- discretize(sim.data)
+test.data2 <- discretize(sim.data, breaks=3)
 ```
 
 ## Translation of learned bayesian network to igraph
@@ -67,48 +67,67 @@ cat(effect.igraph.from.bnmatrix)
 
 ```{r results='asis'}
 causal.effect.probabilites.so2.co <- function(data) {
-  data %>%
-    select(so2, co, Type, Zone, Year) %>%
-    #select(so2, co, Type, Zone, DateTime) %>%
+  # select relevant columns
+  data <- data %>%
+    select(so2, co, Type, Zone, Year) 
+  
+  # calculate probabilities for realisations of Zone 
+  data <- data %>%
     add_count(Zone) %>%
     mutate(prob_zone = n / n()) %>%
-    select(-n) %>%
+    select(-n) 
+  
+  # calculate probabilities for realisations of Type 
+  data <- data %>%
     add_count(Type) %>%
     mutate(prob_type = n / n()) %>%
-    select(-n) %>%
-    #add_count(DateTime) %>%
+    select(-n) 
+  
+  # calculate probabilities for realisations of Year 
+  data <- data %>%
     add_count(Year) %>%
     mutate(prob_datetime = n / n()) %>%
-    select(-n) %>%
-    #group_by(Zone, Type, DateTime, co) %>%
+    select(-n) 
+  
+  # calculate conditional probability for so2 by Zone, Type, Year, co
+  data <- data %>%
     group_by(Zone, Type, Year, co) %>%
     add_count(so2) %>%
     group_by(Zone, Type, Year, co) %>%
     mutate(so2_cond_prob = n / n()) %>%
-    #select(-n) %>%
-    mutate(total_prob = prob_zone * prob_type * prob_datetime * so2_cond_prob) %>%
+    select(-n) 
+  
+  # calculate causal effect and add probability for co to table
+  data <- data %>%
     ungroup() %>%
     distinct() %>%
+    mutate(total_prob = prob_zone * prob_type * prob_datetime * so2_cond_prob) %>%
     group_by(so2, co) %>%
-    summarise("P(so2|Type, Zone, Year, co)P(Type)P(Zone)P(Year)" = sum(total_prob),
-              "Sum.so2" = sum(n)) %>%
-    #summarise("P(so2|Type, Zone, DateTime, co)P(Type)P(Zone)P(DateTime)" = sum(total_prob)) %>%
+    summarise(P_so2 = sum(total_prob)) %>%
     inner_join(data %>%
                  group_by(co) %>%
                  count(co) %>%
-                 mutate("P(co)" = n / nrow(data)) %>%
+                 mutate(P_co = n / nrow(data)) %>%
                  select(-n))
   
+  
 }
+# calculates the conditional mutual information for do(co) on so2
 conditional.mutual.information.so2.co <- function(data) {
   causal.effects <- causal.effect.probabilites.so2.co(data)
-  log.sum <- sum(causal.effects %>%
-                   base::apply(MARGIN = 1, function(x)
-                     as.numeric(x[3]) * as.numeric(x[4])))
   
+  # Calculation of sum in denominator of logarithm
+  log.sum <- function(vj){
+    sum(causal.effects %>%
+      filter(so2 == vj) %>%
+      base::apply(MARGIN = 1, function(x)
+      as.numeric(x["P_so2"]) * as.numeric(x["P_co"])))
+  }
+  
+  # Rowwise calculation of Conditional Mutual Information
   sum(causal.effects %>%
         base::apply(MARGIN = 1, function(x)
-          as.numeric(x[3]) * as.numeric(x[4]) * log(as.numeric(x[3]) / log.sum)))
+          as.numeric(x["P_co"]) * as.numeric(x["P_so2"]) * log(as.numeric(x["P_so2"]) / log.sum(x["so2"]))))
 }
 
 
@@ -120,10 +139,52 @@ conditional.mutual.information.so2.co <- function(data) {
 xtable(causal.effect.probabilites.so2.co(test.data),
        digits = c(0, 0, 0, 10, 5))
 # causal.effect.probabilites.so2.co(test.data)
-causal.effect.probabilites.so2.co(test.data) %>% arrange(co)
+cep <- causal.effect.probabilites.so2.co(test.data) %>% arrange(co)
 
+cep %>%
+  filter(so2 == 1) %>%
+  ggplot(aes(x=co, y = P_co * 100, fill = co)) + geom_bar(stat='identity')
+
+cep %>%
+  filter(co == 1) %>%
+  ggplot(aes(x=so2, y = P_so2_prior * 100, fill = so2)) + geom_bar(stat='identity')
+
+cep %>%
+  ggplot(aes(x=so2, y = P_so2 * 100, fill=co)) + geom_bar(stat='identity', position = position_dodge())
 
 conditional.mutual.information.so2.co(test.data)
+library(stringr)
+
+test.data2 %>%
+  select(so2) %>%
+  distinct() %>%
+  mutate(so2_range = as.numeric(str_extract(as.character(so2), "(?<=,)-?[0-9]+(?:.[0-9]+)?(e\\+[0-9]+)?")) -  as.numeric(str_extract(as.character(so2), "-?[0-9]+(?:.[0-9]+)?(e\\+[0-9]+)?"))) %>%
+  mutate(so2_range_norm = scale(so2_range, center = FALSE, scale=TRUE)) %>%
+  inner_join(test.data2 %>%
+               count(so2)) %>%
+  ggplot(aes(x=so2, y = n, fill = as.character(so2_range), width = so2_range_norm)) + geom_bar(stat='identity')
+
+test.data2 %>%
+  select(co) %>%
+  distinct() %>%
+  mutate(co_range = as.numeric(str_extract(as.character(co), "(?<=,)-?[0-9]+(?:.[0-9]+)?(e\\+[0-9]+)?")) -  as.numeric(str_extract(as.character(co), "-?[0-9]+(?:.[0-9]+)?(e\\+[0-9]+)?"))) %>%
+  mutate(co_range_norm = scale(co_range, center = FALSE, scale=TRUE)) %>%
+  inner_join(test.data2 %>%
+               count(co)) %>%
+  ggplot(aes(x=co, y = n, fill = as.character(co_range), width = co_range_norm)) + geom_bar(stat='identity')
+
+
+ggplot(data.frame(sim.data$co), aes(sim.data$co)) + geom_histogram(bins = 20)
+
+ggplot(data.frame(sim.data$co), aes(sim.data$co)) + geom_histogram(bins = 2)
+
+
+
+ggplot(data.frame(sim.data$so2), aes(sim.data$so2)) + geom_histogram(bins = 20)
+
+ggplot(data.frame(sim.data$so2), aes(sim.data$so2)) + geom_histogram(bins = 2)
+
+
 
 ```
 
