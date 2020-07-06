@@ -28,5 +28,25 @@ generate.sample <- function(size, seed = 0, dev = TRUE){
   
   sample
   
-  }
+}
+
+# applies final presentation theme to plots
+apply_theme <- function(plot){
+  plot + 
+    theme(panel.background = element_rect(fill = "transparent"),
+          plot.background = element_rect(fill = "transparent", color = NA),
+          legend.background = element_rect(fill = "transparent", color = NA),
+          legend.box.background = element_rect(fill = "transparent", color = NA),
+          axis.text.x = element_text(colour="white", size = 14),
+          axis.text.y = element_text(colour="white", size = 14),
+          text = element_text(colour="white", size = 16),
+    ) +
+    scale_fill_manual(values = c("#10e7d9", "#24d8a0", "#1d4c7a", "#a7f5b8", "#1781a1"))
+  
+}
+
+# support function to allow saving with transparent background
+save_with_theme <- function(plot, file = "newplot.png"){
+  ggsave(plot, filename = file,  bg = "transparent")
+}
 
