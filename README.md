@@ -10,22 +10,17 @@ This is the supplementary repository for the research on discretization on real 
 ## Pipeline
 
 ### Setup
-install.packages
+`install-packages.R`
 
 ### Data generation
-data-generator
+`data-generator.R`
 
 ### Causal Strucute Learning
-- conditional-gaussian-csl
-- discretized-csl
+`discretized-csl.R`
 
 ### Causal Inference
-__TBD__
-(ci-do.rmd)
-
-
+`effect-estimation.R`
 
 ## Helpful commands
-
 ### Interactive graph (igraph)
-`tkplot(graph, vertex.size=35, vertex.label.family="sans", vertex.color="white")`R
+`tkplot(graph, vertex.size=35, vertex.label.family="sans", vertex.color="white")`

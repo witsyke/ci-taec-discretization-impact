@@ -1,33 +1,42 @@
 source("./helper.R")
 
-load("./blacklist-legacy.rds")
-sample.sizes <- c(100, 1000, 10000, 100000, 1000000, 5000000, 10000000, 12500000, 15000000)
+load("./blacklist.rds")
+sample.sizes <-
+  c(100, 1000, 10000, 100000, 1000000, 5000000, 10000000)
 bins <- c(2, 3, 4, 5, 7, 10)
 
 for (sample.size in sample.sizes) {
   sample <- generate.sample(sample.size)
   for (bin.count in bins) {
-    
     #discretize data with bnlearn built-in
-    discrete.sample.builtin <- discretize(sample, breaks = bin.count)
+    discrete.sample.builtin <-
+      discretize(sample, breaks = bin.count)
     
     # pc stable with discrete values (built-in)
-    cat(paste("discrete built-in,", bin.count, "bins,", sample.size, "samples:"))
+    cat(paste(
+      "discrete built-in,",
+      bin.count,
+      "bins,",
+      sample.size,
+      "samples:"
+    ))
     
-    cat(system.time(computed.net1 <-
-      pc.stable(
-        discrete.sample.builtin,
-        test = "mi-sh",
-        blacklist = base::as.data.frame(bl)
-      )))
+    cat(system.time(
+      computed.net1 <-
+        pc.stable(
+          discrete.sample.builtin,
+          test = "mi-sh",
+          blacklist = base::as.data.frame(bl)
+        )
+    ))
     
     cat("\n")
     
-    save(computed.net1, file = timestamped.filename(
+    save(computed.net1, file = filename(
       prefix = "./nets/",
       name = paste(
         sample.size,
-        "legacy-built-in-discrete",
+        "datetime-built-in-discrete",
         bin.count,
         "bin.rds",
         sep = '-'
@@ -48,17 +57,34 @@ for (sample.size in sample.sizes) {
           x) %>%
       base::as.data.frame()
     
-    cat(paste("discrete k-median,", bin.count, "clusters,", sample.size, "samples:"))
+    cat(paste(
+      "discrete k-median,",
+      bin.count,
+      "clusters,",
+      sample.size,
+      "samples:"
+    ))
     
-    cat(system.time(computed.net2 <-
-      pc.stable(clustered.data,
-                test = "mi-sh",
-                blacklist = base::as.data.frame(bl))))
+    cat(system.time(
+      computed.net2 <-
+        pc.stable(
+          clustered.data,
+          test = "mi-sh",
+          blacklist = base::as.data.frame(bl)
+        )
+    ))
+    
     cat("\n")
     
-    save(computed.net2, file = timestamped.filename(
+    save(computed.net2, file = filename(
       prefix = "./nets/",
-      name = paste(sample.size, "legacy-k-median", bin.count, "clusters.rds", sep = '-')
+      name = paste(
+        sample.size,
+        "datetime-k-median",
+        bin.count,
+        "clusters.rds",
+        sep = '-'
+      )
     ))
   }
 }

@@ -4,6 +4,7 @@ install.packages("chron")
 install.packages("rbin")
 install.packages("Ckmeans.1d.dp")
 install.packages("causaleffect")
+install.packages("scales")
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
   install.packages("BiocManager")
