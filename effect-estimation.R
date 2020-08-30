@@ -156,8 +156,6 @@ quality.scores$shd <-
   apply(filenames, 1, calculate.shd, gt = ground.truth)
 quality.scores$f1 <-
   apply(filenames, 1, calculate.f1, gt = ground.truth)
-quality.scores$fm <-
-  apply(filenames, 1, calculate.fm, gt = ground.truth)
 quality.scores$mcc <-
   apply(filenames, 1, calculate.mcc, gt = ground.truth)
 

@@ -36,7 +36,7 @@ for (sample.size in sample.sizes) {
       prefix = "./nets/",
       name = paste(
         sample.size,
-        "datetime-built-in-discrete",
+        "built-in-discrete",
         bin.count,
         "bin.rds",
         sep = '-'
@@ -80,7 +80,7 @@ for (sample.size in sample.sizes) {
       prefix = "./nets/",
       name = paste(
         sample.size,
-        "datetime-k-median",
+        "k-median",
         bin.count,
         "clusters.rds",
         sep = '-'
