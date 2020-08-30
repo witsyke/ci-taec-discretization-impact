@@ -747,13 +747,13 @@ t2m.do.wd235 <- probs.wd.t2m %>% filter(wd == 235)
 t2m.do.wd296 <- probs.wd.t2m %>% filter(wd == 296)
 
 (plot1 <- (t2m.do.wd65 %>%
-           ggplot(aes(x=t2m, y=p, fill=t2m)) + geom_bar(stat = 'identity') + ylab("P") +  xlab("T2M [K]") + ylim(0,0.35) + t + scale_fill_manual(values = grey_pal()(4))))
+           ggplot(aes(x=t2m, y=p, fill=t2m)) + geom_bar(stat = 'identity') + ylab("P") +  xlab("T2M") + ylim(0,0.35) + t + scale_fill_manual(values = grey_pal()(4))))
 (plot2 <- (t2m.do.wd167 %>%
-            ggplot(aes(x=t2m, y=p, fill=t2m)) + geom_bar(stat = 'identity') + ylab("P") +  xlab("T2M [K]") + ylim(0,0.35) + t + scale_fill_manual(values = grey_pal()(4))))
+            ggplot(aes(x=t2m, y=p, fill=t2m)) + geom_bar(stat = 'identity') + ylab("P") +  xlab("T2M") + ylim(0,0.35) + t + scale_fill_manual(values = grey_pal()(4))))
 (plot3 <- (t2m.do.wd235 %>%
-            ggplot(aes(x=t2m, y=p, fill=t2m)) + geom_bar(stat = 'identity') + ylab("P") +  xlab("T2M [K]") + ylim(0,0.35) + t + scale_fill_manual(values = grey_pal()(4))))
+            ggplot(aes(x=t2m, y=p, fill=t2m)) + geom_bar(stat = 'identity') + ylab("P") +  xlab("T2M") + ylim(0,0.35) + t + scale_fill_manual(values = grey_pal()(4))))
 (plot4 <- (t2m.do.wd296 %>%
-            ggplot(aes(x=t2m, y=p, fill=t2m)) + geom_bar(stat = 'identity') + ylab("P") +  xlab("T2M [K]") + ylim(0,0.35) + t + scale_fill_manual(values = grey_pal()(4))))
+            ggplot(aes(x=t2m, y=p, fill=t2m)) + geom_bar(stat = 'identity') + ylab("P") +  xlab("T2M") + ylim(0,0.35) + t + scale_fill_manual(values = grey_pal()(4))))
 
 
 ggsave(plot1, filename = "t2m-do-wd-1.pdf", device = "pdf", width=7, height=5)
