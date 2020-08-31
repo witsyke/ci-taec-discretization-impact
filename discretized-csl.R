@@ -13,35 +13,24 @@ for (sample.size in sample.sizes) {
       discretize(sample, breaks = bin.count)
     
     # pc stable with discrete values (built-in)
-    cat(paste(
-      "discrete built-in,",
-      bin.count,
-      "bins,",
-      sample.size,
-      "samples:"
-    ))
+    cat(paste("discrete built-in,",
+              bin.count,
+              "bins,",
+              sample.size,
+              "samples: "))
     
-    cat(system.time(
-      computed.net1 <-
-        pc.stable(
-          discrete.sample.builtin,
-          test = "mi-sh",
-          blacklist = base::as.data.frame(bl)
-        )
-    ))
+    cat(system.time(computed.net1 <- pc.stable(discrete.sample.builtin,
+                                               test = "mi-sh",
+                                               blacklist = base::as.data.frame(bl))))
     
     cat("\n")
     
-    save(computed.net1, file = filename(
-      prefix = "./nets/",
-      name = paste(
-        sample.size,
-        "built-in-discrete",
-        bin.count,
-        "bin.rds",
-        sep = '-'
-      )
-    ))
+    save(computed.net1, file = filename(prefix = "./nets/",
+                                        name = paste(sample.size,
+                                                     "built-in-discrete",
+                                                     bin.count,
+                                                     "bin.rds",
+                                                     sep = '-')))
     
     
     # discretize data with k-means
@@ -57,34 +46,23 @@ for (sample.size in sample.sizes) {
           x) %>%
       base::as.data.frame()
     
-    cat(paste(
-      "discrete k-median,",
-      bin.count,
-      "clusters,",
-      sample.size,
-      "samples:"
-    ))
+    cat(paste("discrete k-median,",
+              bin.count,
+              "clusters,",
+              sample.size,
+              "samples: "))
     
-    cat(system.time(
-      computed.net2 <-
-        pc.stable(
-          clustered.data,
-          test = "mi-sh",
-          blacklist = base::as.data.frame(bl)
-        )
-    ))
+    cat(system.time(computed.net2 <- pc.stable(clustered.data,
+                                               test = "mi-sh",
+                                               blacklist = base::as.data.frame(bl))))
     
     cat("\n")
     
-    save(computed.net2, file = filename(
-      prefix = "./nets/",
-      name = paste(
-        sample.size,
-        "k-median",
-        bin.count,
-        "clusters.rds",
-        sep = '-'
-      )
-    ))
+    save(computed.net2, file = filename(prefix = "./nets/",
+                                        name = paste(sample.size,
+                                                     "k-median",
+                                                     bin.count,
+                                                     "clusters.rds",
+                                                     sep = '-')))
   }
 }

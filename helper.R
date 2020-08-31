@@ -17,5 +17,4 @@ generate.sample <- function(size, seed = 0) {
   sample <- sample_n(data, size = size, replace = F)
   rm(data)
   sample
-  
 }

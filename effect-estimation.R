@@ -45,8 +45,9 @@ ggsave(dp.plot.crop,
        height = PLOT_HEIGHT)
 
 
-# Disrectize and generate histograms of SO2 concentration
+# Disrectize and generate bar charts of SO2 concentration
 disc.sample.quantile <- discretize(dp.sample, breaks = 3)
+
 disc.sample.kM <- dp.sample %>%
   base::sapply(function(x)
     if (!is.factor(x)) {
@@ -59,11 +60,12 @@ disc.sample.kM <- dp.sample %>%
       x) %>%
   base::as.data.frame()
 
-
-histogram.so2.quantile <- disc.sample.quantile %>%
+# bar chart for quantile discretized SO2
+barchart.so2.quantile <- disc.sample.quantile %>%
   count(so2) %>%
   ggplot(aes(x = so2, y = n, fill = so2)) + 
-    geom_col() + ylab("count") +  
+    geom_col() + 
+    ylab("count") +  
     xlab(expression("Concentration of SO"[2])) + 
     ylim(0, 10000)  + 
     scale_x_discrete(
@@ -73,7 +75,8 @@ histogram.so2.quantile <- disc.sample.quantile %>%
     t + 
     scale_fill_manual(values = grey_pal()(3))
 
-histogram.so2.kMedian <- (
+# bar chart for k-median clustered SO2
+barchart.so2.kMedian <- (
   disc.sample.kM %>%
     ggplot(aes(x = so2, fill = so2)) + 
       geom_bar() + 
@@ -88,12 +91,12 @@ histogram.so2.kMedian <- (
       scale_fill_manual(values = grey_pal()(3)))
 
 
-ggsave(histogram.so2.kMedian,
+ggsave(barchart.so2.kMedian,
        filename = "disc-so2-km.pdf",
        device = "pdf",
        width = PLOT_WIDTH,
        height = PLOT_HEIGHT)
-ggsave(histogram.so2.quantile,
+ggsave(barchart.so2.quantile,
        filename = "disc-so2-q.pdf",
        device = "pdf",
        width = PLOT_WIDTH,
@@ -122,22 +125,26 @@ loadRData <- function(fileName) {
 
 
 # Define quality measures for learned Bayesian networks
+# Hamming distance
 calculate.hd <- function(row, gt) {
   net <- loadRData(row["filename"])
   hamming(cpdag(net), cpdag(ground.truth))
 }
 
+# Structural Hamming distance
 calculate.shd  <- function(row, gt) {
   net <- loadRData(row["filename"])
   shd(cpdag(net), ground.truth)
 }
 
+# F1 score
 calculate.f1  <- function(row, gt) {
   net <- loadRData(row["filename"])
   conf.matrix <- bnlearn::compare(ground.truth, net)
   conf.matrix$tp / (conf.matrix$tp + 0.5 * (conf.matrix$fp + conf.matrix$fn))
 }
 
+# Matthews correlation coefficient
 calculate.mcc <- function(row, gt) {
   net <- loadRData(row["filename"])
   conf.matrix <- bnlearn::compare(ground.truth, net)

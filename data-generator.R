@@ -10,11 +10,9 @@ sim.data <- rbn(bn, sample.size)
 
 # convert timestamps to continuous
 data <- sim.data %>%
-  mutate(DateTime = as.numeric(chron(
-    dates = paste(Year, Month, Day, sep = "-"),
-    times = paste(Hour, "0", "0", sep = ":"),
-    format = c('y-m-d', 'h:m:s')
-  ))) %>%
+  mutate(DateTime = as.numeric(chron(dates = paste(Year, Month, Day, sep = "-"),
+                                     times = paste(Hour, "0", "0", sep = ":"),
+                                     format = c('y-m-d', 'h:m:s')))) %>%
   filter(!is.na(DateTime))
 
 data <- data %>%
@@ -26,14 +24,13 @@ save(data, file = "base-data.RDS")
 
 # blacklist arcs to DateTime, Region, Zone, Long, Lat, Alt
 # and from CVD60
-source.nodes <-
-  c("DateTime",
-    "Region",
-    "Zone",
-    "Type",
-    "Latitude",
-    "Altitude",
-    "Longitude")
+source.nodes <- c("DateTime",
+                  "Region",
+                  "Zone",
+                  "Type",
+                  "Latitude",
+                  "Altitude",
+                  "Longitude")
 
 bl.source <- names(data) %>%
   tidyr::crossing(source.nodes) %>%
