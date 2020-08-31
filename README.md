@@ -1,4 +1,4 @@
-# Impact of Data Discretization on Causal Inference for aReal-World Environment-Health Scenario
+# Impact of Data Discretization on Causal Inference for a Real-World Environment-Health Scenario
 This is the supplementary repository for the research on discretization on real world applicatin scenarios conducted as part of the lecture "Causal Inference - Theory and Applications in Enterprise Computing" at the Hasso Plattner Institute in Potsdam.
 
 ## Package Specifications
